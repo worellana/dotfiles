@@ -79,19 +79,22 @@ try {
     Write-Host 'Repositorio git inicializado.'
   }
   $changes = git status --porcelain
-  if (-not $changes) {
-    Write-Host 'Sin cambios.'
-    return
-  }
-  Write-Host "`nCambios:"
-  $changes | ForEach-Object { Write-Host "  $_" }
-
-  if ($Commit -or $Push) {
-    git add -A
-    git commit -m "chore: sync configs $(Get-Date -Format 'yyyy-MM-dd HH:mm')" | Out-Host
-    if ($Push) { git push | Out-Host }
+  if ($changes) {
+    Write-Host "`nCambios:"
+    $changes | ForEach-Object { Write-Host "  $_" }
   }
   else {
+    Write-Host 'Sin cambios.'
+  }
+
+  if ($Commit -or $Push) {
+    if ($changes) {
+      git add -A
+      git commit -m "chore: sync configs $(Get-Date -Format 'yyyy-MM-dd HH:mm')" | Out-Host
+    }
+    if ($Push) { git push -u origin HEAD | Out-Host }
+  }
+  elseif ($changes) {
     Write-Host "`nRevisa y ejecuta: .\sync.ps1 -Commit   (o -Push)"
   }
 }
