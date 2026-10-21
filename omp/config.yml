@@ -1,5 +1,6 @@
 composer:
-  shape: box
+  shape: claude
+  tokenRate: false
 defaultThinkingLevel: low
 modelRoles:
   tiny: local/qwen2.5-1.5b
@@ -10,15 +11,14 @@ theme:
   dark: dark-tokyo-night
   light: light
 extensions:
-  - C:/Users/Williams Orellana/.omp/agent/extensions/combo-toggle/index.js
-  - C:/Users/Williams Orellana/.omp/plugins/node_modules/@dietrichgebert/ponytail/pi-extension/index.js
   - C:/Users/Williams Orellana/.omp/agent/extensions/shared/mode-reinforcement.js
 statusLine:
-  preset: nerd
+  preset: default
   separator: powerline-thin
   sessionAccent: true
   compactThinkingLevel: false
   showHookStatus: true
   transparent: true
+  contextLine: percentage
 images:
   blockImages: false
