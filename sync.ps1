@@ -62,6 +62,16 @@ foreach ($f in 'config.yml', 'mcp.json', 'models.yml', 'settings.json') {
   Sync-File (Join-Path $env:USERPROFILE ".omp\agent\$f") (Join-Path $root "omp\$f")
 }
 
+# PowerShell: PS7 usa Documents\PowerShell, PS5 usa Documents\WindowsPowerShell
+foreach ($edition in 'PowerShell', 'WindowsPowerShell') {
+  Sync-File (Join-Path $env:USERPROFILE "Documents\$edition\Microsoft.PowerShell_profile.ps1") `
+    (Join-Path $root "powershell\$edition\Microsoft.PowerShell_profile.ps1")
+}
+
+# Starship (el tema activo y la variante tokyo)
+Sync-File (Join-Path $env:USERPROFILE '.config\starship.toml') (Join-Path $root 'starship\starship.toml')
+Sync-File (Join-Path $env:USERPROFILE '.config\starship-tokyo.toml') (Join-Path $root 'starship\starship-tokyo.toml')
+
 Push-Location $root
 try {
   if (-not (Test-Path -LiteralPath (Join-Path $root '.git'))) {

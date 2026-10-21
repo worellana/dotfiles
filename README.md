@@ -30,6 +30,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\sync.ps1 -Commit
 | `omp/mcp.json` | `%USERPROFILE%\.omp\agent\mcp.json` |
 | `omp/models.yml` | `%USERPROFILE%\.omp\agent\models.yml` |
 | `omp/settings.json` | `%USERPROFILE%\.omp\agent\settings.json` |
+| `powershell/PowerShell/Microsoft.PowerShell_profile.ps1` | `%USERPROFILE%\Documents\PowerShell\Microsoft.PowerShell_profile.ps1` (PS7) |
+| `powershell/WindowsPowerShell/Microsoft.PowerShell_profile.ps1` | `%USERPROFILE%\Documents\WindowsPowerShell\Microsoft.PowerShell_profile.ps1` (PS5.1) |
+| `starship/starship.toml` | `%USERPROFILE%\.config\starship.toml` |
+| `starship/starship-tokyo.toml` | `%USERPROFILE%\.config\starship-tokyo.toml` (tema alternativo) |
 
 No se respaldan bases de datos ni cachés de omp (`agent.db`, `history.db`, `models.db`, `sessions/`, `blobs/`, `cache/`, `terminal-sessions/`), ni `%APPDATA%\wezterm\plugins` (se descargan solos).
 
@@ -43,6 +47,9 @@ Copy-Item $HOME\dotfiles\wezterm\wezterm.lua $HOME\.wezterm.lua
 robocopy $HOME\dotfiles\alacritty $env:APPDATA\alacritty /MIR
 $o = "$HOME\.omp\agent"; New-Item -ItemType Directory -Force $o | Out-Null
 Copy-Item $HOME\dotfiles\omp\* $o
+Copy-Item $HOME\dotfiles\powershell\PowerShell\Microsoft.PowerShell_profile.ps1 "$HOME\Documents\PowerShell\" -Force
+Copy-Item $HOME\dotfiles\powershell\WindowsPowerShell\Microsoft.PowerShell_profile.ps1 "$HOME\Documents\WindowsPowerShell\" -Force
+Copy-Item $HOME\dotfiles\starship\starship.toml $HOME\.config\ -Force
 ```
 
 Neovim usa LazyVim: al abrirlo reinstala plugins según `nvim/lazy-lock.json`.
