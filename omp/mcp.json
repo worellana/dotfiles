@@ -1,0 +1,22 @@
+{
+  "$schema": "https://raw.githubusercontent.com/can1357/oh-my-pi/main/packages/coding-agent/src/config/mcp-schema.json",
+  "mcpServers": {
+    "Blender": {
+      "type": "stdio",
+      "command": "C:\\Users\\Williams Orellana\\.local\\bin\\uv.exe",
+      "args": [
+        "--directory",
+        "C:\\tools\\blender_mcp\\mcp",
+        "run",
+        "blender-mcp"
+      ]
+    },
+    "Krita": {
+      "type": "stdio",
+      "command": "C:\\Users\\Williams Orellana\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+      "args": [
+        "C:\\tools\\krita_mcp\\server.py"
+      ]
+    }
+  }
+}

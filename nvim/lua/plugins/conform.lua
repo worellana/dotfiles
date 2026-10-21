@@ -1,0 +1,24 @@
+return {
+  "stevearc/conform.nvim",
+  event = { "BufWritePre" },
+  cmd = { "ConformInfo" },
+  opts = {
+    formatters_by_ft = {
+      lua = { "stylua" },
+      python = { "isort", "black" },
+      javascript = { { "prettierd", "prettier" } },
+      markdown = { { "prettierd", "prettier" } },
+      typescript = { "eslint_d" },
+      sh = { "shfmt" },
+      bash = { "shfmt" },
+      cs = { "csharpier" },
+      c = { "clang-format" },
+      cpp = { "clang-format" },
+    },
+    formatters = {
+      stylua = {
+        command = "stylua",
+      },
+    },
+  },
+}

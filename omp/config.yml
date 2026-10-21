@@ -1,0 +1,24 @@
+composer:
+  shape: box
+defaultThinkingLevel: low
+modelRoles:
+  tiny: local/qwen2.5-1.5b
+  default: commandcode/deepseek/deepseek-v4.1-flash:low
+setupVersion: 2
+symbolPreset: nerd
+theme:
+  dark: dark-tokyo-night
+  light: light
+extensions:
+  - C:/Users/Williams Orellana/.omp/agent/extensions/combo-toggle/index.js
+  - C:/Users/Williams Orellana/.omp/plugins/node_modules/@dietrichgebert/ponytail/pi-extension/index.js
+  - C:/Users/Williams Orellana/.omp/agent/extensions/shared/mode-reinforcement.js
+statusLine:
+  preset: nerd
+  separator: powerline-thin
+  sessionAccent: true
+  compactThinkingLevel: false
+  showHookStatus: true
+  transparent: true
+images:
+  blockImages: false
