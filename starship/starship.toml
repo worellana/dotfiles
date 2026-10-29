@@ -1,5 +1,9 @@
 "$schema" = 'https://starship.rs/config-schema.json'
 
+# ms que puede tardar el escaneo del directorio actual (default 30). Mismo valor
+# que en Fedora/WSL para que ambos prompts se comporten igual.
+scan_timeout = 200
+
 format = """
 [░▒▓](#a3aed2)\
 $os\

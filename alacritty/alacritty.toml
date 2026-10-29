@@ -3,6 +3,8 @@
 padding = { x = 7, y = 5 }
 dynamic_padding = true
 opacity = 0.95
+blur = true
+# Barra de título estándar de Windows (mover: Win+Flechas / Win+Shift+Flechas).
 decorations = "Full"
 dimensions = { columns = 120, lines = 35 }
 
@@ -11,19 +13,19 @@ dimensions = { columns = 120, lines = 35 }
 size = 11.0
 
 [font.normal]
-family = "CommitMono Nerd Font"
+family = "CommitMono Nerd Font Mono"
 style = "Regular"
 
 [font.bold]
-family = "CommitMono Nerd Font"
+family = "CommitMono Nerd Font Mono"
 style = "Bold"
 
 [font.italic]
-family = "CommitMono Nerd Font"
+family = "CommitMono Nerd Font Mono"
 style = "Italic"
 
 [font.bold_italic]
-family = "CommitMono Nerd Font"
+family = "CommitMono Nerd Font Mono"
 style = "Bold Italic"
 
 # Esquema de colores estilo Catppuccin Mocha / Dark Low-Saturation
@@ -55,9 +57,16 @@ style = "Bold Italic"
 #cyan = "#94e2d5"
 #white = "#a6adc8"
 
+[colors]
+# Igual que Windows Terminal (intenseTextStyle = bright): el texto en negrita
+# usa el color brillante del esquema.
+draw_bold_text_with_bright_colors = true
+
 [colors.primary]
 background = "#1a1b26"
 foreground = "#c0caf5"
+bright_foreground = "#c0caf5"
+dim_foreground = "#a9b1d6"
 
 [colors.cursor]
 text = "#1a1b26"
@@ -107,4 +116,8 @@ bindings = [
   { key = "Minus",  mods = "Control", action = "DecreaseFontSize" },
   { key = "Key0",   mods = "Control", action = "ResetFontSize" },
   { key = "NumpadEnter", chars = "\r" },
+  # Control de ventana
+  { key = "F9",  mods = "Control|Shift", action = "Minimize" },
+  { key = "F10", mods = "Control|Shift", action = "ToggleMaximized" },
+  { key = "Q",   mods = "Control|Shift", action = "Quit" },
 ]

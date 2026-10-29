@@ -8,6 +8,17 @@ $global:lastRepository = $null
 if ($PSVersionTable.PSVersion.Major -ge 7)
 {
     Import-Module -Name Terminal-Icons -ErrorAction SilentlyContinue
+
+    # PS 7.6 pinta los directorios con fondo azul (ESC[44;1m) en Get-ChildItem.
+    # Como en Linux: azul en primer plano, sin fondo.
+    $PSStyle.FileInfo.Directory = "$($PSStyle.Foreground.Blue)$($PSStyle.Bold)"
+
+    # Errores: una sola línea SIEMPRE (incluso dentro de scripts y funciones).
+    # CategoryView sacrifica la frase explicativa; `err` la muestra bajo demanda.
+    $ErrorView = 'CategoryView'
+    $PSStyle.Formatting.Error = $PSStyle.Foreground.FromRgb(0xf7768e)
+    $PSStyle.Formatting.ErrorAccent = $PSStyle.Foreground.FromRgb(0xbb9af7)
+    $PSStyle.Formatting.Warning = $PSStyle.Foreground.FromRgb(0xe0af68)
 }
 Import-Module -Name posh-git -ErrorAction SilentlyContinue
 
@@ -25,7 +36,23 @@ $edition    = if ($PSVersionTable.PSEdition -eq 'Core')
 # Window Title
 if ($Host.UI.RawUI)
 {
-    $Host.UI.RawUI.WindowTitle = "$edition v.$psversion"
+    $termName    = $edition
+    $termVersion = $psversion
+
+    # ALACRITTY_LOG solo existe si el shell corre dentro de Alacritty.
+    # La versión se pregunta al binario para que siga siendo correcta tras
+    # cada actualización (TOML no permite interpolar valores).
+    if ($env:ALACRITTY_LOG -and (Get-Command alacritty -ErrorAction SilentlyContinue))
+    {
+        $raw = alacritty --version | Out-String
+        if ($raw -match 'alacritty\s+v?(\d[\w.\-]*)')
+        {
+            $termName    = 'Alacritty'
+            $termVersion = $Matches[1]
+        }
+    }
+
+    $Host.UI.RawUI.WindowTitle = "$termName v.$termVersion"
 }
 
 #-----------------------------------------------------
@@ -77,7 +104,22 @@ function Check-DirectoryForNewRepository
 
 function Set-Location
 {
-    Microsoft.PowerShell.Management\Set-Location @args
+    try
+    {
+        Microsoft.PowerShell.Management\Set-Location @args -ErrorAction Stop
+    }
+    catch
+    {
+        # Una línea, estilo `cd` de Linux.
+        $target = $_.CategoryInfo.TargetName
+        $text = if ($_.CategoryInfo.Category -eq 'ObjectNotFound' -and $target)
+        { "cd: no existe '$target'" }
+        else
+        { "cd: $($_.Exception.Message)" }
+
+        Write-Host "$($PSStyle.Foreground.FromRgb(0xf7768e))$text$($PSStyle.Reset)"
+        return
+    }
     Check-DirectoryForNewRepository
 }
 Check-DirectoryForNewRepository
@@ -102,20 +144,26 @@ function getMyIP
     }
 }
 
+# y [ruta] : abre yazi y al salir cambia el directorio del shell al que dejaste.
+# Sin argumentos empieza en el cwd; con argumento (y C:/, y ~/dev) empieza ahí.
 function y
 {
+    param([Parameter(ValueFromRemainingArguments = $true)][string[]]$StartPath)
+
     $tmp = [System.IO.Path]::GetTempFileName()
-    yazi $args --cwd-file="$tmp"
+    $where = if ($StartPath) { $StartPath } else { $PWD.Path }
+    yazi $where --cwd-file="$tmp"
     if (Test-Path -LiteralPath $tmp)
     {
         $cwd = Get-Content -LiteralPath $tmp -Encoding UTF8 -Raw
-        if (-not [String]::IsNullOrEmpty($cwd) -and $cwd.Trim() -ne $PWD.Path)
+        Remove-Item -LiteralPath $tmp -ErrorAction SilentlyContinue
+        if (-not [String]::IsNullOrWhiteSpace($cwd) -and $cwd.Trim() -ne $PWD.Path)
         {
             Set-Location -LiteralPath ([System.IO.Path]::GetFullPath($cwd.Trim()))
         }
-        Remove-Item -LiteralPath $tmp -ErrorAction SilentlyContinue
     }
 }
+Set-Alias -Name yy -Value y -Option AllScope -ErrorAction SilentlyContinue
 
 #setx ANDROID_SDK_ROOT "C:\tools\Android\Sdk"
 #setx PATH "$env:PATH;C:\tools\Android\Sdk\cmdline-tools\latest\bin;C:\tools\Android\Sdk\platform-tools;C:\tools\Android\Sdk\emulator"
@@ -129,9 +177,71 @@ if (Get-Command neovide -ErrorAction SilentlyContinue)
     #    Set-Alias -Name nv -Value neovide -Option AllScope -ErrorAction SilentlyContinue
 }
 
-function ll
-{ Get-ChildItem -Force @args 
+#-----------------------------------------------------
+# ls estilo Linux (eza): corto por defecto, -l largo, iconos
+#-----------------------------------------------------
+if (Get-Command eza -ErrorAction SilentlyContinue)
+{
+    # El alias 'ls' del sistema tiene prioridad sobre una función: hay que quitarlo.
+    Remove-Item Alias:ls -Force -ErrorAction SilentlyContinue
+
+    function ls
+    {
+        $flags = @()
+        $targets = @()
+        $sawPath = $false
+
+        foreach ($a in $args)
+        {
+            if ($a -is [string] -and $a.StartsWith('-'))
+            {
+                $flags += $a
+            }
+            elseif ($a -is [string] -and $a -match '[*?\[]')
+            {
+                # eza no expande globs; que los expanda PowerShell.
+                # Rutas relativas para que la salida no muestre C:\... completos.
+                $sawPath = $true
+                foreach ($m in @(Get-Item -Path $a -ErrorAction SilentlyContinue))
+                {
+                    $targets += [System.IO.Path]::GetRelativePath($PWD.Path, $m.FullName)
+                }
+            }
+            else
+            {
+                $sawPath = $true
+                $targets += $a
+            }
+        }
+
+        if ($targets.Count -eq 0)
+        {
+            # Glob sin coincidencias: no listar el cwd por accidente.
+            if ($sawPath) { return }
+
+            # eza sin argumentos no emite nada cuando stdout no es una consola;
+            # con "." explícito funciona siempre.
+            $targets = @('.')
+        }
+
+        eza --icons=auto --group-directories-first --color=auto @flags @targets
+    }
+
+    # ll = lista larga con archivos ocultos (como el alias de Linux)
+    function ll
+    {
+        ls -lah @args
+    }
 }
+# err [n]: frase completa del último error (o del n anterior). CategoryView
+# solo muestra la categoría y el tipo de excepción.
+function err
+{
+    param([int]$Index = 0)
+    if ($Error.Count -le $Index) { return }
+    Write-Host $Error[$Index].Exception.Message
+}
+
 function which
 { param($bin) Get-Command $bin -ErrorAction SilentlyContinue 
 }
@@ -198,22 +308,39 @@ function omp4
 { omp --model ollama/qwen3-4b-16k --thinking off @args 
 }
 
-function yy
-{
-    $tmp = [System.IO.Path]::GetTempFileName()
-    yazi $args --cwd-file="$tmp"
-    $cwd = Get-Content -Path $tmp
-    if (-not [String]::IsNullOrEmpty($cwd) -and $cwd -ne $PWD.Path)
-    {
-        Set-Location $cwd
-    }
-    Remove-Item -Path $tmp
-}
-
 # Forzar predicciones si estamos dentro de psmux
 if ($env:TMUX -or $env:PSMUX)
 {
     Set-PSReadLineOption -PredictionSource HistoryAndPlugin -ErrorAction SilentlyContinue
+}
+
+#-----------------------------------------------------
+# NAVEGACIÓN: fzf + fd desde la línea de comandos
+#-----------------------------------------------------
+if ((Get-Command fzf -ErrorAction SilentlyContinue) -and (Get-Command fd -ErrorAction SilentlyContinue))
+{
+    # Ctrl+T: inserta en la línea las rutas de archivos elegidas (Tab = multiselección)
+    Set-PSReadLineKeyHandler -Chord 'Ctrl+t' -ScriptBlock {
+        $picked = fd --hidden --exclude .git --type f 2>$null |
+            fzf --height 60% --layout reverse --multi --prompt 'file> '
+        if ($picked)
+        {
+            $quoted = foreach ($p in $picked) { "'" + ($p -replace "'", "''") + "'" }
+            [Microsoft.PowerShell.PSConsoleReadLine]::Insert(($quoted -join ' '))
+        }
+    }
+
+    # Alt+C: salta a un directorio elegido con fzf (equivalente al Alt+C de bash/zsh)
+    Set-PSReadLineKeyHandler -Chord 'Alt+c' -ScriptBlock {
+        $dir = fd --hidden --exclude .git --type d 2>$null |
+            fzf --height 60% --layout reverse --prompt 'dir> '
+        if ($dir)
+        {
+            [Microsoft.PowerShell.PSConsoleReadLine]::RevertLine()
+            [Microsoft.PowerShell.PSConsoleReadLine]::Insert("cd '" + ($dir -replace "'", "''") + "'")
+            [Microsoft.PowerShell.PSConsoleReadLine]::AcceptLine()
+        }
+    }
 }
 
 # Zoxide
