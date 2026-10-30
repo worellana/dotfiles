@@ -1,9 +1,13 @@
 [window]
-# Márgenes internos para que el texto no pegue con los bordes
+# Márgenes internos para que el texto no pegue con los bordes.
+# opacity = 1.0 y blur = false: la translucidez hace que el escritorio se
+# transparente detrás de las letras y el texto se perciba borroso; Neovide y
+# cualquier GUI dibujan sobre fondo opaco. Si quieres recuperar la transparencia,
+# baja opacity (0.97+) sabiendo que vuelve el sangrado del fondo.
 padding = { x = 7, y = 5 }
 dynamic_padding = true
-opacity = 0.95
-blur = true
+opacity = 1.0
+blur = false
 # Barra de título estándar de Windows (mover: Win+Flechas / Win+Shift+Flechas).
 decorations = "Full"
 dimensions = { columns = 120, lines = 35 }

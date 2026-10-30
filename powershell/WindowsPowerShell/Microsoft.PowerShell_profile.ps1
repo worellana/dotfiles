@@ -101,6 +101,21 @@ function op {
     pwsh.exe -NoProfile -Command "opencode"
 }
 
+# fd [comando...] : abre Fedora WSL en el directorio actual de PowerShell.
+# Sin argumentos inicia la shell por defecto; con argumentos los ejecuta allí.
+function fd {
+    if ($PWD.Provider.Name -ne 'FileSystem') {
+        Write-Warning "fd: el directorio actual no es del sistema de archivos."
+        return
+    }
+
+    if ($args.Count -gt 0) {
+        wsl.exe -d FedoraLinux-44 --cd $PWD.ProviderPath -- @args
+    } else {
+        wsl.exe -d FedoraLinux-44 --cd $PWD.ProviderPath
+    }
+}
+
 # Aliases & shortcuts
 Set-Alias -Name uptime -Value my_uptime -Option AllScope -ErrorAction SilentlyContinue
 Set-Alias -Name myip   -Value getMyIP   -Option AllScope -ErrorAction SilentlyContinue

@@ -314,14 +314,35 @@ if ($env:TMUX -or $env:PSMUX)
     Set-PSReadLineOption -PredictionSource HistoryAndPlugin -ErrorAction SilentlyContinue
 }
 
+# fd [comando...] : abre Fedora WSL en el directorio actual de PowerShell.
+# Sin argumentos inicia la shell por defecto; con argumentos los ejecuta allí.
+# Nota: sombrea a fd.exe (fd-find); los handlers de abajo lo llaman explícito.
+function fd
+{
+    if ($PWD.Provider.Name -ne 'FileSystem')
+    {
+        Write-Warning "fd: el directorio actual no es del sistema de archivos."
+        return
+    }
+
+    if ($args.Count -gt 0)
+    {
+        wsl.exe -d FedoraLinux-44 --cd $PWD.ProviderPath -- @args
+    }
+    else
+    {
+        wsl.exe -d FedoraLinux-44 --cd $PWD.ProviderPath
+    }
+}
+
 #-----------------------------------------------------
 # NAVEGACIÓN: fzf + fd desde la línea de comandos
 #-----------------------------------------------------
-if ((Get-Command fzf -ErrorAction SilentlyContinue) -and (Get-Command fd -ErrorAction SilentlyContinue))
+if ((Get-Command fzf -ErrorAction SilentlyContinue) -and (Get-Command fd.exe -ErrorAction SilentlyContinue))
 {
     # Ctrl+T: inserta en la línea las rutas de archivos elegidas (Tab = multiselección)
     Set-PSReadLineKeyHandler -Chord 'Ctrl+t' -ScriptBlock {
-        $picked = fd --hidden --exclude .git --type f 2>$null |
+        $picked = fd.exe --hidden --exclude .git --type f 2>$null |
             fzf --height 60% --layout reverse --multi --prompt 'file> '
         if ($picked)
         {
@@ -332,7 +353,7 @@ if ((Get-Command fzf -ErrorAction SilentlyContinue) -and (Get-Command fd -ErrorA
 
     # Alt+C: salta a un directorio elegido con fzf (equivalente al Alt+C de bash/zsh)
     Set-PSReadLineKeyHandler -Chord 'Alt+c' -ScriptBlock {
-        $dir = fd --hidden --exclude .git --type d 2>$null |
+        $dir = fd.exe --hidden --exclude .git --type d 2>$null |
             fzf --height 60% --layout reverse --prompt 'dir> '
         if ($dir)
         {
