@@ -10,6 +10,40 @@ return {
     config = function()
       local dap = require("dap")
 
+      -- El proyecto se resuelve desde el buffer actual, no desde el cwd de Neovim:
+      -- con `neovide --wsl` el cwd puede ser $HOME y `dotnet build` falla con
+      -- "MSB1003: Specify a project or solution file".
+      local function find_project_dir()
+        local buf = vim.api.nvim_buf_get_name(0)
+        local dir = (buf ~= "" and vim.fs.dirname(buf)) or vim.uv.cwd()
+        while dir and dir ~= "" do
+          for _, pat in ipairs({ "*.sln", "*.slnx", "*.csproj" }) do
+            if #vim.fn.glob(dir .. "/" .. pat, false, true) > 0 then
+              return dir
+            end
+          end
+          local parent = vim.fs.dirname(dir)
+          if not parent or parent == dir then
+            break
+          end
+          dir = parent
+        end
+        return vim.uv.cwd()
+      end
+
+      local function build_command(cwd)
+        local slns = vim.fn.glob(cwd .. "/*.sln", false, true)
+        vim.list_extend(slns, vim.fn.glob(cwd .. "/*.slnx", false, true))
+        if #slns == 1 then
+          return { "dotnet", "build", slns[1] }
+        end
+        local csprojs = vim.fn.glob(cwd .. "/*.csproj", false, true)
+        if #csprojs == 1 then
+          return { "dotnet", "build", csprojs[1] }
+        end
+        return { "dotnet", "build" }
+      end
+
       -- Estado de la selección (DLL + argumentos + entorno) resuelta al lanzar.
       -- nvim-dap evalúa las funciones de la configuración en orden arbitrario,
       -- por eso todos los campos se resuelven una sola vez desde aquí.
@@ -41,7 +75,8 @@ return {
             vim.notify("Compilando proyecto (dotnet build)...", vim.log.levels.INFO)
           end
 
-          vim.system({ "dotnet", "build" }, {}, function(obj)
+          local cwd = find_project_dir()
+          vim.system(build_command(cwd), { cwd = cwd }, function(obj)
             vim.schedule(function()
               if obj.code == 0 then
                 if notifier then
@@ -53,7 +88,7 @@ return {
               else
                 if notifier then
                   notifier.notify(
-                    "Error de compilación:\n" .. (obj.stderr ~= "" and obj.stderr or obj.stdout),
+                    "Error de compilación (" .. cwd .. "):\n" .. (obj.stderr ~= "" and obj.stderr or obj.stdout),
                     "error",
                     { id = notify_id }
                   )
@@ -370,7 +405,7 @@ while ((Get-Date) -lt $deadline) {
         launch_selection.dll, launch_selection.args, launch_selection.env = nil, {}, {}
         launch_selection.cwd = nil
 
-        local cwd = vim.fn.getcwd()
+        local cwd = find_project_dir()
         local projects = discover_projects(cwd)
 
         -- Proyecto principal: el .csproj del cwd o, si no hay, el nombre de la carpeta
