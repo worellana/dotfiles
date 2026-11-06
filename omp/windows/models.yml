@@ -1,0 +1,58 @@
+providers:
+    ollama:
+        api: openai-completions
+        auth: none
+        baseUrl: http://127.0.0.1:11434/v1
+        discovery:
+            type: ollama
+        models:
+            - contextWindow: 16384
+              id: kwangsuklee/Qwen3.5-4B-Claude-4.6-Opus-Reasoning-Distilled-GGUF:latest
+              input:
+                - text
+              name: kwangsuklee/Qwen3.5-4B-Claude-4.6-Opus-Reasoning-Distilled-GGUF:latest
+            - contextWindow: 16384
+              id: glm-5.3-flash:cloud
+              input:
+                - text
+              maxTokens: 1048576
+              name: glm-5.3-flash:cloud
+            - contextWindow: 1048576
+              id: glm-5.3:cloud
+              input:
+                - text
+              maxTokens: 1048576
+              name: glm-5.3:cloud
+            - contextWindow: 1048576
+              id: deepseek-v4.1-flash:cloud
+              input:
+                - text
+              maxTokens: 393216
+              name: deepseek-v4.1-flash:cloud
+            - contextWindow: 262144
+              id: gemma4:31b-cloud
+              input:
+                - text
+              maxTokens: 262144
+              name: gemma4:31b-cloud
+            - id: gemma4:26b
+              input:
+                - text
+              name: gemma4:26b
+            - contextWindow: 16384
+              id: hf.co/Jackrong/Qwen3.5-9B-Claude-4.6-Opus-Reasoning-Distilled-v2-GGUF:Q4_K_M
+              input:
+                - text
+                - image
+              name: hf.co/Jackrong/Qwen3.5-9B-Claude-4.6-Opus-Reasoning-Distilled-v2-GGUF:Q4_K_M
+            - contextWindow: 16384
+              maxTokens: 4090
+              id: qwen3:8b
+              input:
+                - text
+              name: qwen3:8b
+            - id: qwen3-8b-16k
+              contextWindow: 16384
+            - id: qwen3-4b-16k
+              contextWindow: 24576
+              reasoning: false

@@ -10,9 +10,13 @@
                WSL /home/<usuario>/.config/nvim    -> nvim\linux
     alacritty  %APPDATA%\alacritty\alacritty.toml
     wezterm    %USERPROFILE%\.wezterm.lua  y  %USERPROFILE%\.config\wezterm
-    omp        %USERPROFILE%\.omp\agent\{config.yml,mcp.json,models.yml,settings.json}
+    omp        Windows: %USERPROFILE%\.omp\agent\{config.yml,mcp.json,models.yml,settings.json}
+               WSL Fedora: /home/<usuario>/.omp/agent/ (mismos archivos + extensions/)
     starship   %USERPROFILE%\.config\starship{,-tokyo}.toml  y
                WSL Fedora: /home/<usuario>/.config/starship.toml
+    psmux      %USERPROFILE%\.psmux.conf        (solo Windows)
+    tmux       WSL Fedora: /home/<usuario>/.tmux.conf   -> tmux\tmux.conf
+    fastfetch  WSL Fedora: /home/<usuario>/.config/fastfetch/config.jsonc
 
 .EXAMPLE
   .\sync.ps1            # copia y muestra cambios
@@ -22,7 +26,8 @@
 [CmdletBinding()]
 param(
   [switch]$Commit,
-  [switch]$Push
+  [switch]$Push,
+  [string]$Message
 )
 
 $ErrorActionPreference = 'Stop'
@@ -77,7 +82,15 @@ Sync-File (Join-Path $env:APPDATA 'alacritty\alacritty.toml') (Join-Path $root '
 Sync-File (Join-Path $env:USERPROFILE '.wezterm.lua') (Join-Path $root 'wezterm\wezterm.lua')
 Sync-Dir (Join-Path $env:USERPROFILE '.config\wezterm') (Join-Path $root 'wezterm\config') @('.git')
 foreach ($f in 'config.yml', 'mcp.json', 'models.yml', 'settings.json') {
-  Sync-File (Join-Path $env:USERPROFILE ".omp\agent\$f") (Join-Path $root "omp\$f")
+  Sync-File (Join-Path $env:USERPROFILE ".omp\agent\$f") (Join-Path $root "omp\windows\$f")
+}
+# omp dentro de WSL Fedora: misma estructura por SO; sin estado (agent.db, sessions/)
+if ($wslHome) {
+  $ompWsl = Join-Path $wslHome '.omp\agent'
+  foreach ($f in 'config.yml', 'mcp.json', 'models.yml', 'settings.json') {
+    Sync-File (Join-Path $ompWsl $f) (Join-Path $root "omp\linux\$f")
+  }
+  Sync-Dir (Join-Path $ompWsl 'extensions') (Join-Path $root 'omp\linux\extensions') @('.git')
 }
 
 # PowerShell: PS7 usa Documents\PowerShell, PS5 usa Documents\WindowsPowerShell
@@ -86,6 +99,9 @@ foreach ($edition in 'PowerShell', 'WindowsPowerShell') {
     (Join-Path $root "powershell\$edition\Microsoft.PowerShell_profile.ps1")
 }
 
+# psmux (multiplexer de Windows): su config es un solo archivo en el home.
+Sync-File (Join-Path $env:USERPROFILE '.psmux.conf') (Join-Path $root 'psmux\psmux.conf')
+
 # Starship (el tema activo y la variante tokyo)
 Sync-File (Join-Path $env:USERPROFILE '.config\starship.toml') (Join-Path $root 'starship\starship.toml')
 Sync-File (Join-Path $env:USERPROFILE '.config\starship-tokyo.toml') (Join-Path $root 'starship\starship-tokyo.toml')
@@ -93,6 +109,16 @@ Sync-File (Join-Path $env:USERPROFILE '.config\starship-tokyo.toml') (Join-Path 
 # Starship dentro de WSL Fedora: allí se usa otro archivo (el de Windows no aplica).
 if ($wslHome) {
   Sync-File (Join-Path $wslHome '.config\starship.toml') (Join-Path $root 'starship\starship-fedora.toml')
+}
+
+# tmux dentro de WSL Fedora: equivalente Linux de psmux\psmux.conf
+if ($wslHome) {
+  Sync-File (Join-Path $wslHome '.tmux.conf') (Join-Path $root 'tmux\tmux.conf')
+}
+
+# fastfetch dentro de WSL Fedora: encabezado de bienvenida que lanza el .zshrc
+if ($wslHome) {
+  Sync-File (Join-Path $wslHome '.config\fastfetch\config.jsonc') (Join-Path $root 'fastfetch\config.jsonc')
 }
 
 Push-Location $root
@@ -113,7 +139,8 @@ try {
   if ($Commit -or $Push) {
     if ($changes) {
       git add -A
-      git commit -m "chore: sync configs $(Get-Date -Format 'yyyy-MM-dd HH:mm')" | Out-Host
+      $msg = if ($Message) { $Message } else { "chore: sync configs $(Get-Date -Format 'yyyy-MM-dd HH:mm')" }
+      git commit -m $msg | Out-Host
     }
     if ($Push) { git push -u origin HEAD | Out-Host }
   }

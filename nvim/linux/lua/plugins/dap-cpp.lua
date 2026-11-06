@@ -9,26 +9,8 @@ return {
       local dap = require("dap")
 
       local codelldb_path = vim.fn.stdpath("data") .. "/mason/packages/codelldb/extension/adapter/codelldb.exe"
-      local is_win = vim.fn.has("win32") == 1
-      if not is_win then
+      if vim.fn.has("win32") == 0 then
         codelldb_path = vim.fn.stdpath("data") .. "/mason/packages/codelldb/extension/adapter/codelldb"
-      end
-
-      -- En Linux/WSL los ejecutables no llevan extensión.
-      local exe_ext = is_win and ".exe" or ""
-
-      -- Lista ejecutables directos de un directorio según la plataforma.
-      local function executables_in(dir)
-        if is_win then
-          return vim.fn.glob(dir .. "/*.exe", false, true)
-        end
-        local out = {}
-        for _, f in ipairs(vim.fn.glob(dir .. "/*", false, true)) do
-          if vim.fn.isdirectory(f) == 0 and vim.fn.executable(f) == 1 then
-            table.insert(out, f)
-          end
-        end
-        return out
       end
 
       -- Flags del proyecto para no duplicar configuración entre clangd/cmake y DAP
@@ -157,7 +139,7 @@ return {
 
         local file = vim.fn.expand("%:p")
         local fname = vim.fn.expand("%:t:r")
-        local output = build_dir .. "/" .. fname .. exe_ext
+        local output = build_dir .. "/" .. fname .. ".exe"
         local ft = vim.bo.filetype
 
         local compiler = (ft == "cpp") and "clang++" or "clang"
@@ -290,18 +272,8 @@ return {
                 error("Error al compilar con CMake:\n" .. res)
               end
 
-              -- Buscar ejecutables válidos ignorando carpetas de Build internas y dependencias
-              local all_exes
-              if is_win then
-                all_exes = vim.fn.glob(build_dir .. "/**/*.exe", false, true)
-              else
-                all_exes = {}
-                for _, p in ipairs(vim.fn.glob(build_dir .. "/**/*", false, true)) do
-                  if vim.fn.isdirectory(p) == 0 and vim.fn.executable(p) == 1 then
-                    table.insert(all_exes, p)
-                  end
-                end
-              end
+              -- Buscar ejecutables válidos ignorando carpetas de Build internass y dependencias
+              local all_exes = vim.fn.glob(build_dir .. "/**/*.exe", false, true)
               local exes = {}
               for _, exe in ipairs(all_exes) do
                 local normalized = exe:gsub("\\", "/")
@@ -337,29 +309,18 @@ return {
                   error("Error al compilar con Makefile:\n" .. res)
                 end
 
-                local patterns
-                if is_win then
-                  patterns = { cwd .. "/*.exe", cwd .. "/build/*.exe", cwd .. "/bin/*.exe" }
-                else
-                  patterns = { cwd .. "/*", cwd .. "/build/*", cwd .. "/bin/*" }
-                end
                 local exes = {}
-                for _, pattern in ipairs(patterns) do
+                for _, pattern in ipairs({ cwd .. "/*.exe", cwd .. "/build/*.exe", cwd .. "/bin/*.exe" }) do
                   for _, exe in ipairs(vim.fn.glob(pattern, false, true)) do
                     local normalized = exe:gsub("\\", "/")
-                    local is_executable = is_win or (vim.fn.isdirectory(exe) == 0 and vim.fn.executable(exe) == 1)
-                    if
-                      is_executable
-                      and not normalized:find("CMakeFiles")
-                      and not normalized:find("CompilerId")
-                    then
+                    if not normalized:find("CMakeFiles") and not normalized:find("CompilerId") then
                       table.insert(exes, exe)
                     end
                   end
                 end
 
                 if #exes == 0 then
-                  error("Makefile compiló, pero no encontré ningún ejecutable en cwd, build/ ni bin/")
+                  error("Makefile compiló, pero no encontré ningún .exe en cwd, build/ ni bin/")
                 elseif #exes == 1 then
                   return exes[1]
                 else
@@ -372,10 +333,7 @@ return {
           end,
           cwd = "${workspaceFolder}",
           stopOnEntry = false,
-          -- codelldb >= 1.11.6 lanza su helper `codelldb-launch` para
-          -- integratedTerminal, que espera el JSON de VS Code por stdin y
-          -- con nvim-dap muere con "EOF while parsing a value".
-          console = "internalConsole",
+          console = "integratedTerminal",
           args = {},
         },
         {
@@ -387,10 +345,7 @@ return {
           end,
           cwd = "${workspaceFolder}",
           stopOnEntry = false,
-          -- codelldb >= 1.11.6 lanza su helper `codelldb-launch` para
-          -- integratedTerminal, que espera el JSON de VS Code por stdin y
-          -- con nvim-dap muere con "EOF while parsing a value".
-          console = "internalConsole",
+          console = "integratedTerminal",
           args = {},
         },
       }
@@ -439,7 +394,7 @@ return {
                       end
 
                       local target_debug = cwd .. "/target/debug"
-                      local exes = executables_in(target_debug)
+                      local exes = vim.fn.glob(target_debug .. "/*.exe", false, true)
                       if #exes >= 1 then
                         coroutine.resume(co, exes[1])
                       else
@@ -459,7 +414,7 @@ return {
                   error("Error al compilar con Cargo:\n" .. res)
                 end
                 local target_debug = cwd .. "/target/debug"
-                local exes = executables_in(target_debug)
+                local exes = vim.fn.glob(target_debug .. "/*.exe", false, true)
                 if #exes >= 1 then
                   return exes[1]
                 end
@@ -473,7 +428,7 @@ return {
 
             local file = vim.fn.expand("%:p")
             local fname = vim.fn.expand("%:t:r")
-            local output = build_dir .. "/" .. fname .. exe_ext
+            local output = build_dir .. "/" .. fname .. ".exe"
 
             if notifier then
               notifier.notify("Compilando con rustc: " .. fname .. "...", "info", {
@@ -525,10 +480,7 @@ return {
           end,
           cwd = "${workspaceFolder}",
           stopOnEntry = false,
-          -- codelldb >= 1.11.6 lanza su helper `codelldb-launch` para
-          -- integratedTerminal, que espera el JSON de VS Code por stdin y
-          -- con nvim-dap muere con "EOF while parsing a value".
-          console = "internalConsole",
+          console = "integratedTerminal",
           args = {},
         },
       }

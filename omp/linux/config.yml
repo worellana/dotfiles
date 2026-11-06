@@ -1,0 +1,25 @@
+composer:
+  shape: claude
+  tokenRate: false
+defaultThinkingLevel: low
+modelRoles:
+  tiny: local/qwen2.5-1.5b
+  default: commandcode/deepseek/deepseek-v4.1-flash:low
+setupVersion: 2
+symbolPreset: nerd
+theme:
+  dark: tokyo-night-soft
+  light: light
+extensions:
+  - /home/worellana/.omp/agent/extensions/shared/mode-reinforcement.js
+  - /home/worellana/.local/lib/node_modules/billion-context/dist/agent/omp-native.js
+statusLine:
+  preset: default
+  separator: powerline-thin
+  sessionAccent: true
+  compactThinkingLevel: false
+  showHookStatus: true
+  transparent: true
+  contextLine: percentage
+images:
+  blockImages: false

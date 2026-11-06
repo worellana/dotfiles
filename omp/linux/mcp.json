@@ -1,0 +1,50 @@
+{
+  "$schema": "https://raw.githubusercontent.com/can1357/oh-my-pi/main/packages/coding-agent/src/config/mcp-schema.json",
+  "mcpServers": {
+    "Blender": {
+      "type": "stdio",
+      "command": "/mnt/c/Users/Williams Orellana/.local/bin/uv.exe",
+      "args": [
+        "--directory",
+        "C:\\tools\\blender_mcp\\mcp",
+        "run",
+        "blender-mcp"
+      ]
+    },
+    "notion": {
+      "type": "http",
+      "url": "https://mcp.notion.com/mcp"
+    },
+    "context7": {
+      "type": "http",
+      "url": "https://mcp.context7.com/mcp",
+      "headers": {
+        "Authorization": "Bearer ${CONTEXT7_API_KEY}"
+      }
+    },
+    "roslynlens": {
+      "type": "stdio",
+      "command": "/home/worellana/.dotnet/tools/roslyn-lens"
+    },
+    "wireshark": {
+      "type": "stdio",
+      "command": "/home/worellana/.local/share/omp-mcp/wireshark/bin/wireshark-mcp",
+      "args": [
+        "serve",
+        "--profile",
+        "analysis"
+      ],
+      "env": {
+        "WIRESHARK_MCP_ALLOWED_DIRS": "/home/worellana/pcaps,/home/worellana/wireshark-results"
+      }
+    },
+    "ghidra": {
+      "type": "stdio",
+      "command": "/home/worellana/.local/share/omp-mcp/ghidra/bin/ghidra-mcp",
+      "args": [
+        "--ghidra-server",
+        "http://127.0.0.1:8080/"
+      ]
+    }
+  }
+}

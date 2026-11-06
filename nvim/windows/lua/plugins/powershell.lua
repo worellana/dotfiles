@@ -1,23 +1,14 @@
+-- PowerShell: powershell.nvim trae su propio servidor (PowerShell Editor Services)
 return {
   {
-    "nvim-treesitter/nvim-treesitter",
-    opts = function(_, opts)
-      vim.list_extend(opts.ensure_installed or {}, { "powershell" })
+    "TheLeoP/powershell.nvim",
+    ft = "ps1",
+    config = function()
+      local root = vim.fn.has("win32") == 1 and "C:/tools/nvim-mason" or (vim.fn.stdpath("data") .. "/mason")
+      local bundle = root .. "/packages/powershell-editor-services"
+      require("powershell").setup({
+        bundle_path = vim.uv.fs_stat(bundle) and bundle or nil,
+      })
     end,
-    {
-      "mason-org/mason.nvim",
-      opts = function(_, opts)
-        vim.list_extend(opts.ensure_installed or {}, { "powershell-editor-services" })
-      end,
-    },
-    {
-      "TheLeoP/powershell.nvim",
-      ft = "ps1",
-      config = function()
-        require("powershell").setup({
-          bundle_path = "C:/tools/nvim-mason/packages/powershell-editor-services",
-        })
-      end,
-    },
   },
 }

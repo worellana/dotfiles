@@ -62,8 +62,8 @@ return {
       },
     },
     opts = {
-      -- Linux/WSL: usar el shell global (/bin/bash por defecto)
-      shell = vim.o.shell,
+      -- En Windows se usa PowerShell; en Linux el shell del sistema.
+      shell = vim.fn.has("win32") == 1 and "pwsh -NoLogo" or nil,
 
       start_in_insert = true,
       insert_mappings = true,

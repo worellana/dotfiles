@@ -1,127 +1,16 @@
+# Perfil por defecto: Fedora 44 en WSL.
+# Los ajustes visuales viven en common.toml; aquí solo el título y la shell.
+[general]
+import = ["common.toml"]
+
 [window]
-# Márgenes internos para que el texto no pegue con los bordes.
-# opacity = 1.0 y blur = false: la translucidez hace que el escritorio se
-# transparente detrás de las letras y el texto se perciba borroso; Neovide y
-# cualquier GUI dibujan sobre fondo opaco. Si quieres recuperar la transparencia,
-# baja opacity (0.97+) sabiendo que vuelve el sangrado del fondo.
-padding = { x = 7, y = 5 }
-dynamic_padding = true
-opacity = 1.0
-blur = false
-# Barra de título estándar de Windows (mover: Win+Flechas / Win+Shift+Flechas).
-decorations = "Full"
-dimensions = { columns = 120, lines = 35 }
-
-[font]
-# Tipografía principal (CommitMono Nerd Font)
-size = 11.0
-
-[font.normal]
-family = "CommitMono Nerd Font Mono"
-style = "Regular"
-
-[font.bold]
-family = "CommitMono Nerd Font Mono"
-style = "Bold"
-
-[font.italic]
-family = "CommitMono Nerd Font Mono"
-style = "Italic"
-
-[font.bold_italic]
-family = "CommitMono Nerd Font Mono"
-style = "Bold Italic"
-
-# Esquema de colores estilo Catppuccin Mocha / Dark Low-Saturation
-#[colors.primary]
-#background = "#1e1e2e"
-#foreground = "#cdd6f4"
-
-#[colors.cursor]
-#text = "#1e1e2e"
-#cursor = "#f5e0dc"
-
-#[colors.normal]
-#black = "#45475a"
-#red = "#f38ba8"
-#green = "#a6e3a1"
-#yellow = "#f9e2af"
-#blue = "#89b4fa"
-#magenta = "#f5c2e7"
-#cyan = "#94e2d5"
-#white = "#bac2de"
-
-#[colors.bright]
-#black = "#585b70"
-#red = "#f38ba8"
-#green = "#a6e3a1"
-#yellow = "#f9e2af"
-#blue = "#89b4fa"
-#magenta = "#f5c2e7"
-#cyan = "#94e2d5"
-#white = "#a6adc8"
-
-[colors]
-# Igual que Windows Terminal (intenseTextStyle = bright): el texto en negrita
-# usa el color brillante del esquema.
-draw_bold_text_with_bright_colors = true
-
-[colors.primary]
-background = "#1a1b26"
-foreground = "#c0caf5"
-bright_foreground = "#c0caf5"
-dim_foreground = "#a9b1d6"
-
-[colors.cursor]
-text = "#1a1b26"
-cursor = "#c0caf5"
-
-[colors.normal]
-black = "#15161e"
-red = "#f7768e"
-green = "#9ece6a"
-yellow = "#e0af68"
-blue = "#7aa2f7"
-magenta = "#bb9af7"
-cyan = "#7dcfff"
-white = "#a9b1d6"
-
-[colors.bright]
-black = "#414868"
-red = "#f7768e"
-green = "#9ece6a"
-yellow = "#e0af68"
-blue = "#7aa2f7"
-magenta = "#bb9af7"
-cyan = "#7dcfff"
-white = "#c0caf5"
-
-[env]
-# Forzar TERM para compatibilidad con Neovim y herramientas modernas
-TERM = "xterm-256color"
+# wsl.exe se apropia del título ("C:\WINDOWS\SYSTEM32\wsl.exe");
+# fijarlo evita eso y deja claro el contexto Linux.
+title = "Fedora 44 · WSL"
+dynamic_title = false
 
 [terminal.shell]
-program = "pwsh.exe"
-args = ["-NoLogo", "-NoExit", "-Command", "Set-Location ~"]
-
-[scrolling]
-history = 5000                 # menos historial = menos memoria
-
-[cursor]
-style = { shape = "Block"}
-
-[selection]
-save_to_clipboard = true       # seleccionar = copiar
-
-[keyboard]
-bindings = [
-  { key = "N", mods = "Control|Shift", action = "CreateNewWindow" },
-  { key = "Equals", mods = "Control", action = "IncreaseFontSize" },
-  { key = "Minus",  mods = "Control", action = "DecreaseFontSize" },
-  { key = "Key0",   mods = "Control", action = "ResetFontSize" },
-  { key = "NumpadEnter", chars = "\r" },
-  # Control de ventana
-  { key = "F9",  mods = "Control|Shift", action = "Minimize" },
-  { key = "F10", mods = "Control|Shift", action = "ToggleMaximized" },
-  { key = "Q",   mods = "Control|Shift", action = "Quit" },
-]
+# Arranque por defecto en Fedora (WSL) y no en PowerShell.
+# "--cd ~" usa el home de Linux; la tilde se pasa literal (Alacritty no expande).
+program = "wsl.exe"
+args = ["-d", "FedoraLinux-44", "--cd", "~"]

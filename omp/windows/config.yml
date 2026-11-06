@@ -1,0 +1,26 @@
+composer:
+  shape: claude
+  tokenRate: false
+defaultThinkingLevel: low
+modelRoles:
+  tiny: local/qwen2.5-1.5b
+  default: commandcode/deepseek/deepseek-v4.1-flash:low
+setupVersion: 3
+symbolPreset: nerd
+theme:
+  dark: dark-tokyo-night
+  light: light
+extensions:
+  - C:/Users/Williams Orellana/.omp/agent/extensions/shared/mode-reinforcement.js
+statusLine:
+  preset: default
+  separator: powerline-thin
+  sessionAccent: true
+  compactThinkingLevel: false
+  showHookStatus: true
+  transparent: true
+  contextLine: percentage
+images:
+  blockImages: false
+update:
+  auto: false

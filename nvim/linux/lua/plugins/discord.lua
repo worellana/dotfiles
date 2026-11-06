@@ -1,8 +1,7 @@
 return {
   {
     "vyfor/cord.nvim",
-    -- El servidor de Discord se instala solo al cargar (crates.io) o con
-    -- :Cord update install; ya no hay script ./build en el plugin.
+    build = vim.fn.has("win32") == 1 and "powershell -ExecutionPolicy Bypass -File build.ps1" or "./build",
     event = "VeryLazy",
     opts = {},
   },

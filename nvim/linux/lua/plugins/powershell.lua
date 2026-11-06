@@ -1,30 +1,13 @@
--- Soporte PowerShell.
--- En Linux/WSL PSES necesita `pwsh` (PowerShell 7), que no viene instalado
--- por defecto en Fedora. Si no existe, no instalamos nada ni activamos el LSP.
-local has_pwsh = vim.fn.executable("pwsh") == 1
-
+-- PowerShell: powershell.nvim trae su propio servidor (PowerShell Editor Services)
 return {
-  {
-    "nvim-treesitter/nvim-treesitter",
-    opts = function(_, opts)
-      vim.list_extend(opts.ensure_installed or {}, { "powershell" })
-    end,
-  },
-  {
-    "mason-org/mason.nvim",
-    opts = function(_, opts)
-      if has_pwsh then
-        vim.list_extend(opts.ensure_installed or {}, { "powershell-editor-services" })
-      end
-    end,
-  },
   {
     "TheLeoP/powershell.nvim",
     ft = "ps1",
-    cond = has_pwsh,
     config = function()
+      local root = vim.fn.has("win32") == 1 and "C:/tools/nvim-mason" or (vim.fn.stdpath("data") .. "/mason")
+      local bundle = root .. "/packages/powershell-editor-services"
       require("powershell").setup({
-        bundle_path = vim.fn.stdpath("data") .. "/mason/packages/powershell-editor-services",
+        bundle_path = vim.uv.fs_stat(bundle) and bundle or nil,
       })
     end,
   },

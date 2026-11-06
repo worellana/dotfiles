@@ -71,23 +71,16 @@ return {
       -- Forzar a DAP a abrir terminales de depuración dentro de un panel en Neovim
       dap.defaults.fallback.terminal_win_cmd = "botright 12split new"
 
-      -- Linux/WSL: el netcoredbg de Mason vive en libexec; en Windows estaba
-      -- en la ruta sin espacios de C:/tools. Resolvemos ambos casos.
-      local function netcoredbg_command()
-        if vim.fn.has("win32") == 1 then
-          return "C:/tools/nvim-mason/packages/netcoredbg/netcoredbg/netcoredbg.exe"
-        end
-        local mason_bin = vim.fn.stdpath("data") .. "/mason/packages/netcoredbg/libexec/netcoredbg/netcoredbg"
-        if vim.fn.executable(mason_bin) == 1 then
-          return mason_bin
-        end
-        local found = vim.fn.exepath("netcoredbg")
-        return found ~= "" and found or "netcoredbg"
+      local netcoredbg
+      if vim.fn.has("win32") == 1 then
+        netcoredbg = (vim.env.MASON or "C:/tools/nvim-mason") .. "/packages/netcoredbg/netcoredbg/netcoredbg.exe"
+      else
+        netcoredbg = vim.fn.exepath("netcoredbg") ~= "" and vim.fn.exepath("netcoredbg") or "netcoredbg"
       end
 
       dap.adapters.coreclr = {
         type = "executable",
-        command = netcoredbg_command(),
+        command = netcoredbg,
         args = { "--interpreter=vscode" },
       }
       dap.adapters.netcoredbg = dap.adapters.coreclr
@@ -482,7 +475,9 @@ while ((Get-Date) -lt $deadline) {
     "jay-babu/mason-nvim-dap.nvim",
     opts = function(_, opts)
       opts.handlers = opts.handlers or {}
-      opts.handlers.netcoredbg = function() end
+      -- Solo "coreclr" es un nombre de adapter válido para mason-nvim-dap;
+      -- "netcoredbg" es el paquete de Mason y provocaba el warning
+      -- "unknown dap source name".
       opts.handlers.coreclr = function() end
       -- Función fallback si intenta registrar cualquiera
       table.insert(opts.ensure_installed or {}, "netcoredbg")
