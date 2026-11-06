@@ -71,4 +71,28 @@ return {
     statuscolumn = { enabled = true },
     words = { enabled = true },
   },
+  config = function(_, opts)
+    require("snacks").setup(opts)
+
+    -- El explorador vigila el directorio con libuv (fs_event). En rutas 9p/UNC
+    -- (p. ej. W: -> \\wsl.localhost) libuv devuelve EISDIR y snacks muestra
+    -- "Failed to watch ...". Se prueba el soporte y, si no existe, se omite
+    -- el watcher en silencio (las rutas locales siguen igual).
+    local ok, watch = pcall(require, "snacks.explorer.watch")
+    if ok and not watch._unsupported_guard then
+      watch._unsupported_guard = true
+      local orig_start = watch.start
+      watch.start = function(path, cb)
+        local probe = vim.uv.new_fs_event()
+        local supported = probe:start(path, {}, function() end)
+        if not probe:is_closing() then
+          probe:close()
+        end
+        if not supported then
+          return
+        end
+        return orig_start(path, cb)
+      end
+    end
+  end,
 }

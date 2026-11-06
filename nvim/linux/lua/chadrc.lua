@@ -5,7 +5,7 @@ local M = {}
 
 -- Tema: antes usabas catppuccin-mocha (LazyVim). base46 trae la misma paleta.
 M.base46 = {
-  theme = "catppuccin",
+  theme = "tokyonight",
 
   hl_override = {
     Comment = { italic = true },

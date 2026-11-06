@@ -5,7 +5,7 @@ defaultThinkingLevel: low
 modelRoles:
   tiny: local/qwen2.5-1.5b
   default: commandcode/deepseek/deepseek-v4.1-flash:low
-setupVersion: 2
+setupVersion: 3
 symbolPreset: nerd
 theme:
   dark: tokyo-night-soft
@@ -23,3 +23,5 @@ statusLine:
   contextLine: percentage
 images:
   blockImages: false
+update:
+  auto: false
