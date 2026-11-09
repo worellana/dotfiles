@@ -12,6 +12,7 @@
     wezterm    %USERPROFILE%\.wezterm.lua  y  %USERPROFILE%\.config\wezterm
     omp        Windows: %USERPROFILE%\.omp\agent\{config.yml,mcp.json,models.yml,settings.json}
                WSL Fedora: /home/<usuario>/.omp/agent/ (mismos archivos + extensions/)
+    skills     %USERPROFILE%\.agents\skills  (una sola copia: la leen Windows y WSL)
     starship   %USERPROFILE%\.config\starship{,-tokyo}.toml  y
                WSL Fedora: /home/<usuario>/.config/starship.toml
     psmux      %USERPROFILE%\.psmux.conf        (solo Windows)
@@ -92,6 +93,10 @@ if ($wslHome) {
   }
   Sync-Dir (Join-Path $ompWsl 'extensions') (Join-Path $root 'omp\linux\extensions') @('.git')
 }
+
+# Skills de omp: viven en el perfil de Windows y las leen tanto Windows como WSL
+# (una sola ruta física, sin copia por SO). Incluye los skills de Remotion.
+Sync-Dir (Join-Path $env:USERPROFILE '.agents\skills') (Join-Path $root 'agents\skills')
 
 # PowerShell: PS7 usa Documents\PowerShell, PS5 usa Documents\WindowsPowerShell
 foreach ($edition in 'PowerShell', 'WindowsPowerShell') {

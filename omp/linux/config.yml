@@ -25,3 +25,5 @@ images:
   blockImages: false
 update:
   auto: false
+dev:
+  autoqaConsent: granted
